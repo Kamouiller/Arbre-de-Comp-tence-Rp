@@ -234,27 +234,51 @@
   }
   #directorySearch:focus{ outline: 2px solid var(--amber); outline-offset: 1px; }
 
-  .directory-list{ display:flex; flex-direction:column; border-top: 1px solid var(--line); }
-  .directory-row{
-    display:flex; align-items:center; gap: 12px;
-    padding: 12px 2px;
-    border-bottom: 1px solid var(--line);
-    background: none; border-left:none; border-right:none; border-top:none;
-    width: 100%; text-align:left; cursor:pointer;
-    color: var(--ink); font-family: inherit;
+  .directory-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
   }
-  .directory-row:hover{ background: var(--bg-raised); }
-  .directory-row .avatar{
-    width: 30px; height: 30px; border-radius: 50%;
+  .directory-card{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 8px 10px;
+    display:flex; flex-direction:column; align-items:center;
+    gap: 6px;
+    cursor: pointer;
+    text-align: center;
+    aspect-ratio: 3 / 4;
+  }
+  .directory-card:hover{ border-color: var(--wine-bright); background: var(--bg-raised); }
+  .directory-card .card-visual{
+    flex: 1; width: 100%;
+    display:flex; align-items:flex-end; justify-content:center;
+    position: relative;
+  }
+  .directory-card .mc-thumb{
+    max-height: 100%; max-width: 80px;
+    image-rendering: pixelated;
+  }
+  .directory-card .letter-fallback{
+    width: 56px; height: 56px; border-radius: 50%;
     background: var(--wine); color: var(--amber);
     display:flex; align-items:center; justify-content:center;
-    font-family:'Fraunces', serif; font-size: 14px; font-weight:600;
-    flex-shrink:0;
-    overflow: hidden;
+    font-family:'Fraunces', serif; font-size: 22px; font-weight:600;
   }
-  .directory-row .avatar img{ width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-  .directory-row .dname{ font-size: 14.5px; }
-  .directory-empty{ color: var(--ink-dim); font-size: 13.5px; padding: 16px 2px; }
+  .directory-card .poke-badge{
+    position: absolute; bottom: -4px; right: calc(50% - 44px);
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--bg-card);
+    padding: 2px;
+    image-rendering: pixelated;
+  }
+  .directory-card .dname{
+    font-size: 13px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .directory-empty{ color: var(--ink-dim); font-size: 13.5px; padding: 16px 2px; grid-column: 1 / -1; }
 
   /* ---------- Bloc esthétique : Pokémon préféré + skin Minecraft ---------- */
   .extras-block{
@@ -377,7 +401,7 @@
       <div class="extra-field">
         <label for="favPokemonInput">Pokémon préféré</label>
         <div class="extra-row">
-          <input id="favPokemonInput" type="text" placeholder="ex. pikachu" autocomplete="off" maxlength="30">
+          <input id="favPokemonInput" type="text" placeholder="ex. Dracaufeu ou charizard" autocomplete="off" maxlength="30">
           <button class="btn-ghost" id="favPokemonBtn">Associer</button>
           <img id="favPokemonPreview" class="sprite-preview" style="display:none;" alt="">
         </div>
@@ -412,7 +436,7 @@
         <h2>Annuaire des personnages</h2>
         <input id="directorySearch" type="text" placeholder="Rechercher un pseudo…" autocomplete="off">
       </div>
-      <div class="directory-list" id="directoryList"></div>
+      <div class="directory-grid" id="directoryList"></div>
     </div>
 
     <!-- Vue fiche en lecture seule -->
@@ -790,11 +814,60 @@
   }
 
   // ---------- Pokémon préféré (sprites via PokeAPI, usage non-commercial) ----------
+  let frenchIndexPromise = null;
+
+  function stripAccents(s){
+    return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  // Charge (une seule fois) la table des noms français, depuis les données
+  // officielles ouvertes du projet PokeAPI (CSV), pour permettre la recherche
+  // d'un Pokémon par son nom français plutôt qu'anglais.
+  async function loadFrenchIndex(){
+    if(frenchIndexPromise) return frenchIndexPromise;
+    frenchIndexPromise = (async () => {
+      const res = await fetch("https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv/pokemon_species_names.csv");
+      const text = await res.text();
+      const lines = text.trim().split("\n");
+      const byExact = {};
+      const byNormalized = {};
+      for(let i = 1; i < lines.length; i++){
+        const parts = lines[i].split(",");
+        if(parts[1] !== "5") continue; // 5 = français dans la table des langues PokeAPI
+        const speciesId = parseInt(parts[0], 10);
+        const name = (parts[2] || "").trim();
+        if(!name || !speciesId) continue;
+        byExact[name.toLowerCase()] = speciesId;
+        byNormalized[stripAccents(name.toLowerCase())] = speciesId;
+      }
+      return { byExact, byNormalized };
+    })();
+    return frenchIndexPromise;
+  }
+
   async function resolvePokemon(rawName){
     const query = rawName.trim().toLowerCase();
     if(!query) return null;
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(query)}`);
-    if(!res.ok) throw new Error("pokemon-introuvable");
+
+    // 1) essai direct (nom anglais ou numéro de Pokédex)
+    try{
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(query)}`);
+      if(res.ok) return await pokemonFromResponse(res);
+    }catch{ /* on retente en français ci-dessous */ }
+
+    // 2) essai via la table des noms français
+    const index = await loadFrenchIndex();
+    const speciesId = index.byExact[query] || index.byNormalized[stripAccents(query)];
+    if(!speciesId) throw new Error("pokemon-introuvable");
+
+    const res2 = await fetch(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
+    if(!res2.ok) throw new Error("pokemon-introuvable");
+    const result = await pokemonFromResponse(res2);
+    result.name = rawName.trim().charAt(0).toUpperCase() + rawName.trim().slice(1).toLowerCase();
+    return result;
+  }
+
+  async function pokemonFromResponse(res){
     const data = await res.json();
     const sprite = data.sprites?.front_default;
     if(!sprite) throw new Error("pas-de-sprite");
@@ -835,7 +908,7 @@
     }catch(err){
       favPokemon = null;
       $("favPokemonPreview").style.display = "none";
-      setStatus("Pokémon introuvable — vérifie l'orthographe (nom anglais, ex. pikachu).", "error");
+      setStatus("Pokémon introuvable — vérifie l'orthographe (français ou anglais, ex. Dracaufeu / charizard).", "error");
     }
   });
 
@@ -951,22 +1024,42 @@
     }
 
     filtered.forEach(entry => {
-      const row = document.createElement("button");
-      row.type = "button";
-      row.className = "directory-row";
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "directory-card";
 
-      const avatar = document.createElement("div");
-      avatar.className = "avatar";
-      fillAvatar(avatar, entry.pseudo, entry.favPokemon?.sprite || null);
+      const visual = document.createElement("div");
+      visual.className = "card-visual";
+
+      if(entry.mcPseudo){
+        const mc = document.createElement("img");
+        mc.className = "mc-thumb";
+        mc.src = mcSkinUrl(entry.mcPseudo);
+        mc.alt = "";
+        visual.appendChild(mc);
+      }else{
+        const fallback = document.createElement("div");
+        fallback.className = "letter-fallback";
+        fallback.textContent = entry.pseudo.trim().charAt(0).toUpperCase();
+        visual.appendChild(fallback);
+      }
+
+      if(entry.favPokemon?.sprite){
+        const poke = document.createElement("img");
+        poke.className = "poke-badge";
+        poke.src = entry.favPokemon.sprite;
+        poke.alt = "";
+        visual.appendChild(poke);
+      }
 
       const name = document.createElement("span");
       name.className = "dname";
       name.textContent = entry.pseudo;
 
-      row.appendChild(avatar);
-      row.appendChild(name);
-      row.addEventListener("click", () => viewProfile(entry.id, entry.pseudo));
-      list.appendChild(row);
+      card.appendChild(visual);
+      card.appendChild(name);
+      card.addEventListener("click", () => viewProfile(entry.id, entry.pseudo));
+      list.appendChild(card);
     });
   }
 
