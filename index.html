@@ -299,6 +299,7 @@
     <div id="whoCard" class="who" style="display:none;">
       <div class="name">Fiche de <span id="whoName"></span></div>
       <button class="btn-ghost" id="directoryBtn">Annuaire</button>
+      <button class="btn-ghost" id="adminBtn">Admin</button>
       <button class="btn-ghost" id="logoutBtn">Changer</button>
     </div>
   </header>
@@ -353,6 +354,7 @@
         <h2 id="viewingName" style="margin:0; font-size:21px;"></h2>
         <div style="display:flex; align-items:center; gap:14px;">
           <span class="live-dot">temps réel</span>
+          <button class="btn-ghost" id="deleteProfileBtn" style="display:none; color:var(--error); border-color:var(--error);">Supprimer cette fiche</button>
           <button class="btn-ghost" id="backToListBtn">← Annuaire</button>
         </div>
       </div>
@@ -376,7 +378,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, doc, getDoc, setDoc, collection, onSnapshot
+    getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -468,6 +470,9 @@
   const CATEGORIES = Object.keys(SKILLS);
   const LEVEL_LABELS = ["Novice","Débutant","Confirmé","Expert","Maître"];
   const PROFILES_KEY = "cobblemon_pseudos";
+  // Mot de passe admin — à changer avant de mettre le site en ligne.
+  const ADMIN_PASSWORD = "Kamouiller";
+  let isAdmin = false;
 
   // ---------- État ----------
   let currentUser = null;   // pseudo, normalisé en id de doc
@@ -648,6 +653,43 @@
     else{ closeDirectoryToMine(); }
   });
 
+  $("adminBtn").addEventListener("click", () => {
+    if(isAdmin){
+      isAdmin = false;
+      $("adminBtn").textContent = "Admin";
+      $("adminBtn").classList.remove("on");
+      $("deleteProfileBtn").style.display = "none";
+      setStatus("Mode admin désactivé.", "ok");
+      return;
+    }
+    const attempt = window.prompt("Mot de passe admin :");
+    if(attempt === null) return;
+    if(attempt === ADMIN_PASSWORD){
+      isAdmin = true;
+      $("adminBtn").textContent = "Admin ✓";
+      $("adminBtn").classList.add("on");
+      $("deleteProfileBtn").style.display = (viewMode === "viewing") ? "inline-flex" : "none";
+      setStatus("Mode admin activé.", "ok");
+    }else{
+      setStatus("Mot de passe admin incorrect.", "error");
+    }
+  });
+
+  $("deleteProfileBtn").addEventListener("click", async () => {
+    if(!isAdmin || !viewingPseudo) return;
+    const sure = window.confirm(`Supprimer définitivement la fiche de ${viewingPseudo} ? Cette action est irréversible.`);
+    if(!sure) return;
+    try{
+      await deleteDoc(doc(db, "fiches", slug(viewingPseudo)));
+      setStatus(`Fiche de ${viewingPseudo} supprimée.`, "ok");
+      stopViewingListener();
+      showView("directory");
+    }catch(err){
+      console.error(err);
+      setStatus("Échec de la suppression. Vérifie la configuration Firebase.", "error");
+    }
+  });
+
   function openDirectory(){
     showView("directory");
     setStatus("");
@@ -722,6 +764,7 @@
     viewActiveCat = CATEGORIES[0];
     showView("viewing");
     $("viewingName").textContent = pseudo;
+    $("deleteProfileBtn").style.display = isAdmin ? "inline-flex" : "none";
 
     unsubViewing = onSnapshot(doc(db, "fiches", id), (snap) => {
       viewingLevels = (snap.exists() && snap.data().competences) ? snap.data().competences : {};
@@ -796,6 +839,9 @@
   function logout(){
     stopViewingListener();
     if(unsubDirectory){ unsubDirectory(); unsubDirectory = null; }
+    isAdmin = false;
+    $("adminBtn").textContent = "Admin";
+    $("adminBtn").classList.remove("on");
     currentUser = null;
     levels = {};
     $("whoCard").style.display = "none";
