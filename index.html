@@ -9,16 +9,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #16241c;
-    --bg-raised: #1e3327;
-    --bg-card: #24402f;
-    --line: #3a5a44;
-    --ink: #ece3cd;
-    --ink-dim: #b9c4ac;
+    --bg: #1c0e13;
+    --bg-raised: #2a151b;
+    --bg-card: #331a22;
+    --line: #5a2530;
+    --ink: #f0e2de;
+    --ink-dim: #c3a3a1;
     --amber: #d9a441;
     --amber-soft: rgba(217,164,65,.16);
-    --rust: #b8623b;
-    --pip-off: #33513e;
+    --wine: #7a1f2b;
+    --wine-bright: #a52d3c;
+    --error: #e2626b;
+    --pip-off: #4a232b;
     --radius: 3px;
   }
   *{ box-sizing: border-box; }
@@ -26,8 +28,8 @@
   body{
     background: var(--bg);
     background-image:
-      radial-gradient(ellipse at top left, rgba(217,164,65,.06), transparent 55%),
-      radial-gradient(ellipse at bottom right, rgba(184,98,59,.05), transparent 55%);
+      radial-gradient(ellipse at top left, rgba(165,45,60,.14), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(217,164,65,.05), transparent 55%);
     color: var(--ink);
     font-family: 'Work Sans', sans-serif;
     min-height: 100vh;
@@ -55,14 +57,60 @@
   .brand h1{ font-size: 30px; margin: 0; }
   .brand p{ margin: 6px 0 0; color: var(--ink-dim); font-size: 14.5px; max-width: 46ch; }
 
-  /* ---------- Login card ---------- */
+  .who{ display:flex; align-items:center; gap:10px; flex-wrap: wrap; }
+  .who .name{ font-family:'Fraunces',serif; font-size:17px; }
+  .who .name span{ color: var(--amber); }
+  .who .badge{
+    font-size: 11px; color: var(--amber); border: 1px solid var(--amber);
+    padding: 2px 7px; border-radius: 20px; margin-left: 4px;
+  }
+
+  /* ---------- Gate (écran de sélection / connexion) ---------- */
+  #gate{ margin-bottom: 28px; }
+  .gate-block + .gate-block{ margin-top: 22px; }
+  .gate-label{
+    font-size: 12.5px; color: var(--ink-dim);
+    margin: 0 0 10px;
+  }
+
+  .profile-grid{
+    display:flex; flex-wrap: wrap; gap: 10px;
+  }
+  .profile-chip{
+    display:flex; align-items:center; gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    text-align: left;
+  }
+  .profile-chip:hover{ border-color: var(--wine-bright); background: var(--bg-raised); }
+  .profile-chip .avatar{
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--wine);
+    color: var(--amber);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-size: 14px; font-weight:600;
+    flex-shrink:0;
+  }
+  .profile-chip .pname{ font-size: 14px; font-weight: 500; }
+  .profile-chip .forget{
+    margin-left: 4px;
+    background: none; border: none; padding: 2px 5px;
+    color: var(--ink-dim); font-size: 15px; line-height:1;
+    cursor: pointer; border-radius: var(--radius);
+  }
+  .profile-chip .forget:hover{ color: var(--error); background: rgba(226,98,107,.12); }
+
   .login-card{
     background: var(--bg-card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 22px 22px;
+    padding: 18px 20px;
     display:flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;
-    min-width: 260px;
   }
   .field{ display:flex; flex-direction:column; gap:6px; }
   .field label{ font-size: 12.5px; color: var(--ink-dim); }
@@ -74,7 +122,7 @@
     border-radius: var(--radius);
     font-family: inherit;
     font-size: 14.5px;
-    min-width: 190px;
+    min-width: 220px;
   }
   .field input:focus{ outline: 2px solid var(--amber); outline-offset: 1px; }
   button{
@@ -86,25 +134,22 @@
     cursor: pointer;
     transition: background .15s ease, color .15s ease, border-color .15s ease;
   }
-  .btn-primary{ background: var(--amber); color: #1a1508; }
-  .btn-primary:hover{ background: #e6b25a; }
+  .btn-primary{ background: var(--wine-bright); color: #fbebe9; }
+  .btn-primary:hover{ background: #bf3746; }
   .btn-ghost{ background: transparent; color: var(--ink-dim); border-color: var(--line); }
   .btn-ghost:hover{ color: var(--ink); border-color: var(--ink-dim); }
+  .btn-ghost.on{ color: var(--amber); border-color: var(--amber); }
   button:disabled{ opacity:.5; cursor:not-allowed; }
-
-  .who{ display:flex; align-items:center; gap:10px; }
-  .who .name{ font-family:'Fraunces',serif; font-size:17px; }
-  .who .name span{ color: var(--amber); }
 
   /* ---------- Status line ---------- */
   #status{
-    font-size: 13px; color: var(--ink-dim); min-height: 18px; margin: -10px 0 20px;
+    font-size: 13px; color: var(--ink-dim); min-height: 18px; margin: 0 0 20px;
   }
-  #status.error{ color: var(--rust); }
+  #status.error{ color: var(--error); }
   #status.ok{ color: var(--amber); }
 
   /* ---------- App (hidden until logged in) ---------- */
-  #app{ display:none; }
+  #app, #directory{ display:none; }
 
   .tabs{
     display:flex; flex-wrap:wrap; gap:6px;
@@ -150,6 +195,9 @@
   .pip:hover{ border-color: var(--amber); }
   .pip.filled{ background: var(--amber); border-color: var(--amber); }
   .pip.filled:hover{ background: #e6b25a; }
+  .pip.readonly{ cursor: default; }
+  .pip.readonly:hover{ border-color: var(--pip-off); }
+  .pip.readonly.filled:hover{ background: var(--amber); }
   .level-label{
     font-size: 12px; color: var(--ink-dim); width: 62px; text-align:right;
   }
@@ -165,6 +213,64 @@
   }
   .save-bar .hint{ font-size: 12.5px; color: var(--ink-dim); }
 
+  /* ---------- Annuaire ---------- */
+  .directory-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 14px; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  .directory-header h2{ font-size: 21px; margin:0; }
+  #directorySearch{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 9px 12px;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14px;
+    min-width: 220px;
+  }
+  #directorySearch:focus{ outline: 2px solid var(--amber); outline-offset: 1px; }
+
+  .directory-list{ display:flex; flex-direction:column; border-top: 1px solid var(--line); }
+  .directory-row{
+    display:flex; align-items:center; gap: 12px;
+    padding: 12px 2px;
+    border-bottom: 1px solid var(--line);
+    background: none; border-left:none; border-right:none; border-top:none;
+    width: 100%; text-align:left; cursor:pointer;
+    color: var(--ink); font-family: inherit;
+  }
+  .directory-row:hover{ background: var(--bg-raised); }
+  .directory-row .avatar{
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--wine); color: var(--amber);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-size: 14px; font-weight:600;
+    flex-shrink:0;
+  }
+  .directory-row .dname{ font-size: 14.5px; }
+  .directory-empty{ color: var(--ink-dim); font-size: 13.5px; padding: 16px 2px; }
+
+  .viewing-header{
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 14px; flex-wrap: wrap; margin-bottom: 6px;
+  }
+  .live-dot{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size: 12px; color: var(--ink-dim);
+  }
+  .live-dot::before{
+    content:""; width:7px; height:7px; border-radius:50%;
+    background: var(--amber);
+    box-shadow: 0 0 0 0 rgba(217,164,65,.5);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow: 0 0 0 0 rgba(217,164,65,.5); }
+    70%{ box-shadow: 0 0 0 6px rgba(217,164,65,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(217,164,65,0); }
+  }
+
   footer{
     margin-top: 40px; padding-top: 18px;
     border-top: 1px solid var(--line);
@@ -176,6 +282,7 @@
     .field input{ min-width: 0; width: 100%; }
     .skill-row{ flex-wrap: wrap; }
     .level-label{ width: auto; }
+    #directorySearch{ width: 100%; }
   }
 </style>
 </head>
@@ -186,22 +293,33 @@
     <div class="brand">
       <p class="kicker">Serveur RP · Cobblemon</p>
       <h1>Registre des compétences</h1>
-      <p>Chaque personnage consigne ici son savoir-faire. Choisis ton pseudo pour ouvrir ta fiche.</p>
-    </div>
-
-    <div id="loginCard" class="login-card">
-      <div class="field">
-        <label for="pseudo">Pseudo du personnage</label>
-        <input id="pseudo" type="text" placeholder="ex. Aria Cendre" autocomplete="off" maxlength="30">
-      </div>
-      <button class="btn-primary" id="loginBtn">Ouvrir la fiche</button>
+      <p id="brandSub">Choisis ta fiche ci-dessous, ou crée-en une nouvelle.</p>
     </div>
 
     <div id="whoCard" class="who" style="display:none;">
       <div class="name">Fiche de <span id="whoName"></span></div>
+      <button class="btn-ghost" id="directoryBtn">Annuaire</button>
       <button class="btn-ghost" id="logoutBtn">Changer</button>
     </div>
   </header>
+
+  <div id="gate">
+    <div class="gate-block" id="profilesBlock" style="display:none;">
+      <p class="gate-label">Fiches sur cet appareil — clique pour l'ouvrir directement</p>
+      <div class="profile-grid" id="profileGrid"></div>
+    </div>
+
+    <div class="gate-block">
+      <p class="gate-label" id="newProfileLabel">Nouveau personnage</p>
+      <div id="loginCard" class="login-card">
+        <div class="field">
+          <label for="pseudo">Pseudo du personnage</label>
+          <input id="pseudo" type="text" placeholder="ex. Aria Cendre" autocomplete="off" maxlength="30">
+        </div>
+        <button class="btn-primary" id="loginBtn">Créer / ouvrir la fiche</button>
+      </div>
+    </div>
+  </div>
 
   <div id="status"></div>
 
@@ -219,6 +337,34 @@
     </div>
   </div>
 
+  <div id="directory">
+    <!-- Vue liste -->
+    <div id="directoryListView">
+      <div class="directory-header">
+        <h2>Annuaire des personnages</h2>
+        <input id="directorySearch" type="text" placeholder="Rechercher un pseudo…" autocomplete="off">
+      </div>
+      <div class="directory-list" id="directoryList"></div>
+    </div>
+
+    <!-- Vue fiche en lecture seule -->
+    <div id="directoryViewProfile" style="display:none;">
+      <div class="viewing-header">
+        <h2 id="viewingName" style="margin:0; font-size:21px;"></h2>
+        <div style="display:flex; align-items:center; gap:14px;">
+          <span class="live-dot">temps réel</span>
+          <button class="btn-ghost" id="backToListBtn">← Annuaire</button>
+        </div>
+      </div>
+      <nav class="tabs" id="viewTabs"></nav>
+      <div class="category-title">
+        <h2 id="viewCatTitle"></h2>
+        <span class="count" id="viewCatCount"></span>
+      </div>
+      <div class="skill-list" id="viewSkillList"></div>
+    </div>
+  </div>
+
   <footer>
     Registre des compétences — hébergé sur GitHub Pages.
   </footer>
@@ -230,7 +376,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
-    getFirestore, doc, getDoc, setDoc
+    getFirestore, doc, getDoc, setDoc, collection, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -321,11 +467,20 @@
   };
   const CATEGORIES = Object.keys(SKILLS);
   const LEVEL_LABELS = ["Novice","Débutant","Confirmé","Expert","Maître"];
+  const PROFILES_KEY = "cobblemon_pseudos";
 
   // ---------- État ----------
   let currentUser = null;   // pseudo, normalisé en id de doc
   let levels = {};          // { "Dressage / Combat": 3, ... }
   let activeCat = CATEGORIES[0];
+
+  let viewMode = "mine";    // 'mine' | 'directory' | 'viewing'
+  let directoryEntries = []; // [{id, pseudo}]
+  let unsubDirectory = null;
+  let unsubViewing = null;
+  let viewingPseudo = null;
+  let viewingLevels = {};
+  let viewActiveCat = CATEGORIES[0];
 
   const $ = (id) => document.getElementById(id);
   const statusEl = $("status");
@@ -339,7 +494,70 @@
     return pseudo.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
   }
 
-  // ---------- Rendu des onglets ----------
+  // ---------- Profils mémorisés localement (raccourci sur cet appareil) ----------
+  function getSavedProfiles(){
+    try{ return JSON.parse(localStorage.getItem(PROFILES_KEY) || "[]"); }
+    catch{ return []; }
+  }
+  function addSavedProfile(pseudo){
+    const list = getSavedProfiles().filter(p => p.toLowerCase() !== pseudo.toLowerCase());
+    list.unshift(pseudo);
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(list.slice(0, 12)));
+  }
+  function removeSavedProfile(pseudo){
+    const list = getSavedProfiles().filter(p => p.toLowerCase() !== pseudo.toLowerCase());
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(list));
+    renderGate();
+  }
+
+  function renderGate(){
+    const profiles = getSavedProfiles();
+    const block = $("profilesBlock");
+    const grid = $("profileGrid");
+    grid.innerHTML = "";
+
+    if(profiles.length === 0){
+      block.style.display = "none";
+      $("newProfileLabel").textContent = "Pseudo du personnage";
+      $("brandSub").textContent = "Choisis ton pseudo pour créer ta première fiche sur cet appareil.";
+    }else{
+      block.style.display = "block";
+      $("newProfileLabel").textContent = "Ou crée un nouveau personnage";
+      $("brandSub").textContent = "Choisis ta fiche ci-dessous, ou crée-en une nouvelle.";
+      profiles.forEach(pseudo => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "profile-chip";
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = pseudo.trim().charAt(0).toUpperCase();
+
+        const name = document.createElement("span");
+        name.className = "pname";
+        name.textContent = pseudo;
+
+        const forget = document.createElement("button");
+        forget.type = "button";
+        forget.className = "forget";
+        forget.textContent = "✕";
+        forget.title = "Oublier cette fiche sur cet appareil";
+        forget.addEventListener("click", (e) => {
+          e.stopPropagation();
+          removeSavedProfile(pseudo);
+        });
+
+        chip.appendChild(avatar);
+        chip.appendChild(name);
+        chip.appendChild(forget);
+        chip.addEventListener("click", () => login(pseudo));
+
+        grid.appendChild(chip);
+      });
+    }
+  }
+
+  // ---------- Rendu des onglets (ma fiche) ----------
   function renderTabs(){
     const tabs = $("tabs");
     tabs.innerHTML = "";
@@ -352,7 +570,6 @@
     });
   }
 
-  // ---------- Rendu de la liste de compétences ----------
   function renderSkills(){
     $("catTitle").textContent = activeCat;
     const skills = SKILLS[activeCat];
@@ -361,44 +578,186 @@
     const list = $("skillList");
     list.innerHTML = "";
     skills.forEach(name => {
-      const row = document.createElement("div");
-      row.className = "skill-row";
+      const row = buildSkillRow(name, levels[name] || 0, {
+        editable: true,
+        onChange: (newLevel) => { levels[name] = newLevel; renderSkills(); }
+      });
+      list.appendChild(row);
+    });
+  }
 
-      const label = document.createElement("div");
-      label.className = "skill-name";
-      label.textContent = name;
+  // ---------- Rendu générique d'une ligne de compétence ----------
+  function buildSkillRow(name, current, opts){
+    const row = document.createElement("div");
+    row.className = "skill-row";
 
-      const pipsWrap = document.createElement("div");
-      pipsWrap.style.display = "flex";
-      pipsWrap.style.alignItems = "center";
-      pipsWrap.style.gap = "12px";
+    const label = document.createElement("div");
+    label.className = "skill-name";
+    label.textContent = name;
 
-      const pips = document.createElement("div");
-      pips.className = "pips";
-      const current = levels[name] || 0;
+    const pipsWrap = document.createElement("div");
+    pipsWrap.style.display = "flex";
+    pipsWrap.style.alignItems = "center";
+    pipsWrap.style.gap = "12px";
 
-      for(let i=1; i<=5; i++){
-        const pip = document.createElement("button");
-        pip.type = "button";
-        pip.className = "pip" + (i <= current ? " filled" : "");
-        pip.title = LEVEL_LABELS[i-1];
+    const pips = document.createElement("div");
+    pips.className = "pips";
+
+    for(let i=1; i<=5; i++){
+      const pip = document.createElement("button");
+      pip.type = "button";
+      pip.className = "pip" + (i <= current ? " filled" : "") + (opts.editable ? "" : " readonly");
+      pip.title = LEVEL_LABELS[i-1];
+      if(opts.editable){
         pip.addEventListener("click", () => {
-          // re-cliquer sur le même niveau le remet à 0
-          levels[name] = (levels[name] === i) ? 0 : i;
-          renderSkills();
+          const newLevel = (current === i) ? 0 : i;
+          opts.onChange(newLevel);
         });
-        pips.appendChild(pip);
+      }else{
+        pip.disabled = true;
       }
+      pips.appendChild(pip);
+    }
 
-      const lvlLabel = document.createElement("div");
-      lvlLabel.className = "level-label";
-      lvlLabel.textContent = current > 0 ? LEVEL_LABELS[current-1] : "—";
+    const lvlLabel = document.createElement("div");
+    lvlLabel.className = "level-label";
+    lvlLabel.textContent = current > 0 ? LEVEL_LABELS[current-1] : "—";
 
-      pipsWrap.appendChild(pips);
-      pipsWrap.appendChild(lvlLabel);
+    pipsWrap.appendChild(pips);
+    pipsWrap.appendChild(lvlLabel);
+    row.appendChild(label);
+    row.appendChild(pipsWrap);
+    return row;
+  }
 
-      row.appendChild(label);
-      row.appendChild(pipsWrap);
+  // ---------- Navigation entre vues (ma fiche / annuaire / fiche consultée) ----------
+  function showView(mode){
+    viewMode = mode;
+    $("app").style.display = (mode === "mine") ? "block" : "none";
+    $("directory").style.display = (mode === "directory" || mode === "viewing") ? "block" : "none";
+    $("directoryListView").style.display = (mode === "directory") ? "block" : "none";
+    $("directoryViewProfile").style.display = (mode === "viewing") ? "block" : "none";
+
+    const btn = $("directoryBtn");
+    btn.textContent = (mode === "mine") ? "Annuaire" : "← Ma fiche";
+    btn.classList.toggle("on", mode !== "mine");
+  }
+
+  $("directoryBtn").addEventListener("click", () => {
+    if(viewMode === "mine"){ openDirectory(); }
+    else{ closeDirectoryToMine(); }
+  });
+
+  function openDirectory(){
+    showView("directory");
+    setStatus("");
+    if(!unsubDirectory){
+      unsubDirectory = onSnapshot(collection(db, "fiches"), (snap) => {
+        directoryEntries = [];
+        snap.forEach(d => {
+          const data = d.data();
+          directoryEntries.push({ id: d.id, pseudo: data.pseudo || d.id });
+        });
+        directoryEntries.sort((a,b) => a.pseudo.localeCompare(b.pseudo, "fr"));
+        renderDirectoryList();
+      }, (err) => {
+        console.error(err);
+        setStatus("Impossible de charger l'annuaire. Vérifie la configuration Firebase.", "error");
+      });
+    }else{
+      renderDirectoryList();
+    }
+  }
+
+  function closeDirectoryToMine(){
+    stopViewingListener();
+    showView("mine");
+  }
+
+  function renderDirectoryList(){
+    const q = ($("directorySearch").value || "").trim().toLowerCase();
+    const list = $("directoryList");
+    list.innerHTML = "";
+    const filtered = directoryEntries.filter(e => e.pseudo.toLowerCase().includes(q));
+
+    if(filtered.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "directory-empty";
+      empty.textContent = directoryEntries.length === 0
+        ? "Aucune fiche n'a encore été créée."
+        : "Aucun personnage ne correspond à cette recherche.";
+      list.appendChild(empty);
+      return;
+    }
+
+    filtered.forEach(entry => {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "directory-row";
+
+      const avatar = document.createElement("div");
+      avatar.className = "avatar";
+      avatar.textContent = entry.pseudo.trim().charAt(0).toUpperCase();
+
+      const name = document.createElement("span");
+      name.className = "dname";
+      name.textContent = entry.pseudo;
+
+      row.appendChild(avatar);
+      row.appendChild(name);
+      row.addEventListener("click", () => viewProfile(entry.id, entry.pseudo));
+      list.appendChild(row);
+    });
+  }
+
+  $("directorySearch").addEventListener("input", renderDirectoryList);
+  $("backToListBtn").addEventListener("click", () => {
+    stopViewingListener();
+    showView("directory");
+  });
+
+  function viewProfile(id, pseudo){
+    stopViewingListener();
+    viewingPseudo = pseudo;
+    viewActiveCat = CATEGORIES[0];
+    showView("viewing");
+    $("viewingName").textContent = pseudo;
+
+    unsubViewing = onSnapshot(doc(db, "fiches", id), (snap) => {
+      viewingLevels = (snap.exists() && snap.data().competences) ? snap.data().competences : {};
+      renderViewTabs();
+      renderViewSkills();
+    }, (err) => {
+      console.error(err);
+      setStatus("Impossible de charger cette fiche.", "error");
+    });
+  }
+
+  function stopViewingListener(){
+    if(unsubViewing){ unsubViewing(); unsubViewing = null; }
+  }
+
+  function renderViewTabs(){
+    const tabs = $("viewTabs");
+    tabs.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const b = document.createElement("button");
+      b.className = "tab" + (cat === viewActiveCat ? " active" : "");
+      b.textContent = cat;
+      b.addEventListener("click", () => { viewActiveCat = cat; renderViewTabs(); renderViewSkills(); });
+      tabs.appendChild(b);
+    });
+  }
+
+  function renderViewSkills(){
+    $("viewCatTitle").textContent = viewActiveCat;
+    const skills = SKILLS[viewActiveCat];
+    $("viewCatCount").textContent = skills.length + " compétences";
+
+    const list = $("viewSkillList");
+    list.innerHTML = "";
+    skills.forEach(name => {
+      const row = buildSkillRow(name, viewingLevels[name] || 0, { editable: false });
       list.appendChild(row);
     });
   }
@@ -417,10 +776,12 @@
       const snap = await getDoc(ref);
       levels = (snap.exists() && snap.data().competences) ? snap.data().competences : {};
 
-      $("loginCard").style.display = "none";
+      addSavedProfile(pseudo);
+
+      $("gate").style.display = "none";
       $("whoCard").style.display = "flex";
       $("whoName").textContent = pseudo;
-      $("app").style.display = "block";
+      showView("mine");
       activeCat = CATEGORIES[0];
       renderTabs();
       renderSkills();
@@ -433,13 +794,17 @@
   }
 
   function logout(){
+    stopViewingListener();
+    if(unsubDirectory){ unsubDirectory(); unsubDirectory = null; }
     currentUser = null;
     levels = {};
-    $("app").style.display = "none";
     $("whoCard").style.display = "none";
-    $("loginCard").style.display = "flex";
+    $("app").style.display = "none";
+    $("directory").style.display = "none";
+    $("gate").style.display = "block";
     $("pseudo").value = "";
     setStatus("");
+    renderGate();
   }
 
   async function save(){
@@ -468,6 +833,9 @@
   $("pseudo").addEventListener("keydown", (e) => { if(e.key === "Enter") login($("pseudo").value); });
   $("logoutBtn").addEventListener("click", logout);
   $("saveBtn").addEventListener("click", save);
+
+  // ---------- Démarrage ----------
+  renderGate();
 
 </script>
 </body>
