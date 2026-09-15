@@ -95,7 +95,9 @@
     display:flex; align-items:center; justify-content:center;
     font-family:'Fraunces', serif; font-size: 14px; font-weight:600;
     flex-shrink:0;
+    overflow: hidden;
   }
+  .profile-chip .avatar img{ width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
   .profile-chip .pname{ font-size: 14px; font-weight: 500; }
   .profile-chip .forget{
     margin-left: 4px;
@@ -181,7 +183,8 @@
     gap: 16px; padding: 13px 2px;
     border-bottom: 1px solid var(--line);
   }
-  .skill-name{ font-size: 14.5px; }
+  .skill-name{ font-size: 14.5px; display:flex; align-items:center; gap:10px; }
+  .skill-icon{ font-size: 16px; width: 20px; text-align:center; flex-shrink:0; }
   .pips{ display:flex; gap: 6px; flex-shrink:0; }
   .pip{
     width: 22px; height: 22px;
@@ -247,9 +250,53 @@
     display:flex; align-items:center; justify-content:center;
     font-family:'Fraunces', serif; font-size: 14px; font-weight:600;
     flex-shrink:0;
+    overflow: hidden;
   }
+  .directory-row .avatar img{ width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
   .directory-row .dname{ font-size: 14.5px; }
   .directory-empty{ color: var(--ink-dim); font-size: 13.5px; padding: 16px 2px; }
+
+  /* ---------- Bloc esthétique : Pokémon préféré + skin Minecraft ---------- */
+  .extras-block{
+    display:flex; gap: 28px; flex-wrap: wrap;
+    margin-bottom: 26px; padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .extra-field{ flex: 1 1 240px; }
+  .extra-field > label{
+    display:block; font-size: 12.5px; color: var(--ink-dim); margin-bottom: 8px;
+  }
+  .extra-row{ display:flex; gap: 8px; align-items:center; flex-wrap: wrap; }
+  .extra-row input{
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 9px 11px;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14px;
+    min-width: 160px;
+  }
+  .extra-row input:focus{ outline: 2px solid var(--amber); outline-offset: 1px; }
+  .sprite-preview{
+    width: 44px; height: 44px;
+    image-rendering: pixelated;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .mc-skin-preview{
+    margin-top: 12px;
+    width: 84px;
+    image-rendering: pixelated;
+    display: block;
+    border-radius: var(--radius);
+  }
+  .avatar-sprite{
+    width: 34px; height: 34px;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+  }
 
   .viewing-header{
     display:flex; align-items:center; justify-content:space-between;
@@ -297,6 +344,7 @@
     </div>
 
     <div id="whoCard" class="who" style="display:none;">
+      <img id="whoSprite" class="avatar-sprite" style="display:none;" alt="">
       <div class="name">Fiche de <span id="whoName"></span></div>
       <button class="btn-ghost" id="directoryBtn">Annuaire</button>
       <button class="btn-ghost" id="adminBtn">Admin</button>
@@ -325,6 +373,25 @@
   <div id="status"></div>
 
   <div id="app">
+    <div class="extras-block">
+      <div class="extra-field">
+        <label for="favPokemonInput">Pokémon préféré</label>
+        <div class="extra-row">
+          <input id="favPokemonInput" type="text" placeholder="ex. pikachu" autocomplete="off" maxlength="30">
+          <button class="btn-ghost" id="favPokemonBtn">Associer</button>
+          <img id="favPokemonPreview" class="sprite-preview" style="display:none;" alt="">
+        </div>
+      </div>
+      <div class="extra-field">
+        <label for="mcPseudoInput">Pseudo Minecraft (Java)</label>
+        <div class="extra-row">
+          <input id="mcPseudoInput" type="text" placeholder="ex. Notch" autocomplete="off" maxlength="30">
+          <button class="btn-ghost" id="mcPseudoBtn">Aperçu</button>
+        </div>
+        <img id="mcSkinPreview" class="mc-skin-preview" style="display:none;" alt="">
+      </div>
+    </div>
+
     <nav class="tabs" id="tabs"></nav>
     <div class="category-title">
       <h2 id="catTitle"></h2>
@@ -351,13 +418,17 @@
     <!-- Vue fiche en lecture seule -->
     <div id="directoryViewProfile" style="display:none;">
       <div class="viewing-header">
-        <h2 id="viewingName" style="margin:0; font-size:21px;"></h2>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img id="viewingPokeSprite" class="avatar-sprite" style="display:none;" alt="">
+          <h2 id="viewingName" style="margin:0; font-size:21px;"></h2>
+        </div>
         <div style="display:flex; align-items:center; gap:14px;">
           <span class="live-dot">temps réel</span>
           <button class="btn-ghost" id="deleteProfileBtn" style="display:none; color:var(--error); border-color:var(--error);">Supprimer cette fiche</button>
           <button class="btn-ghost" id="backToListBtn">← Annuaire</button>
         </div>
       </div>
+      <img id="viewingMcSkin" class="mc-skin-preview" style="display:none;" alt="">
       <nav class="tabs" id="viewTabs"></nav>
       <div class="category-title">
         <h2 id="viewCatTitle"></h2>
@@ -389,7 +460,7 @@
   messagingSenderId: "871173842127",
   appId: "1:871173842127:web:322d117b65cf1bc37d83ba",
   measurementId: "G-YE1MZMWV16"
-};
+  };
 
   const fbApp = initializeApp(firebaseConfig);
   const db = getFirestore(fbApp);
@@ -471,8 +542,72 @@
   const LEVEL_LABELS = ["Novice","Débutant","Confirmé","Expert","Maître"];
   const PROFILES_KEY = "cobblemon_pseudos";
   // Mot de passe admin — à changer avant de mettre le site en ligne.
-  const ADMIN_PASSWORD = "Kamouiller";
+  const ADMIN_PASSWORD = "change-moi";
   let isAdmin = false;
+
+  // ---------- Icônes par compétence ----------
+  const SKILL_ICONS = {
+    "Dressage / Combat": "⚔️",
+    "Reproduction / élevage": "🥚",
+    "Soin vétérinaire Pokémon": "🩺",
+    "Toilettage / Esthétique Pokémon": "🛁",
+    "Compréhension du langage Pokémon": "💬",
+    "Entraînement physique": "🏋️",
+    "Organisation de tournois / arbitrage": "🏆",
+    "Maçonnerie": "🧱",
+    "Charpenterie": "🪵",
+    "Architecture / Plans": "📐",
+    "Urbanisme": "🏙️",
+    "Ingénierie des structures": "🏗️",
+    "Décoration d'intérieur": "🛋️",
+    "Décoration extérieure": "🌳",
+    "Fortification / Défense": "🛡️",
+    "Métallurgie (forge)": "🔨",
+    "Menuiserie / Travail du bois": "🪚",
+    "Couture / Tissage": "🧵",
+    "Poterie": "🏺",
+    "Joaillerie": "💍",
+    "Maroquinerie (cuir)": "👜",
+    "Vitrerie (verre / vitraux)": "🪟",
+    "Fabrication d'outils": "🛠️",
+    "Sculpture": "🗿",
+    "Taillage de pierre": "⛏️",
+    "Électrotechnique": "🔌",
+    "Mécanique / Robotique": "🤖",
+    "Réparation d'appareils": "🔧",
+    "Production d'énergie": "⚡",
+    "Domotique": "🏠",
+    "Informatique / Programmation": "💻",
+    "Agriculture": "🌾",
+    "Cuisine": "🍳",
+    "Pêche": "🎣",
+    "Chasse": "🏹",
+    "Herboristerie / Botanique": "🌿",
+    "Médecine": "💊",
+    "Fabrication de potions / Alchimie": "🧪",
+    "Purification de l'eau": "💧",
+    "Confection d'abris de fortune": "⛺",
+    "Cartographie": "🗺️",
+    "Minage / Extraction": "⛏️",
+    "Spéléologie": "🕳️",
+    "Navigation": "🧭",
+    "Pistage / Repérage": "🐾",
+    "Survie en milieu extrême": "🏔️",
+    "Escalade": "🧗",
+    "Météorologie": "🌦️",
+    "Commerce / Négociation": "🤝",
+    "Enseignement / Formation": "📚",
+    "Recherche scientifique": "🔬",
+    "Diplomatie / Médiation": "🕊️",
+    "Droit / Justice RP": "⚖️",
+    "Journalisme / Communication": "📰",
+    "Histoire / Archivage": "📜",
+    "Leadership / Gestion de groupe": "👑"
+  };
+
+  // ---------- État : Pokémon préféré / skin Minecraft ----------
+  let favPokemon = null;   // { name, sprite }
+  let mcPseudo = "";
 
   // ---------- État ----------
   let currentUser = null;   // pseudo, normalisé en id de doc
@@ -529,6 +664,7 @@
       block.style.display = "block";
       $("newProfileLabel").textContent = "Ou crée un nouveau personnage";
       $("brandSub").textContent = "Choisis ta fiche ci-dessous, ou crée-en une nouvelle.";
+      const avatarEls = {};
       profiles.forEach(pseudo => {
         const chip = document.createElement("button");
         chip.type = "button";
@@ -537,6 +673,7 @@
         const avatar = document.createElement("div");
         avatar.className = "avatar";
         avatar.textContent = pseudo.trim().charAt(0).toUpperCase();
+        avatarEls[slug(pseudo)] = avatar;
 
         const name = document.createElement("span");
         name.className = "pname";
@@ -558,6 +695,17 @@
         chip.addEventListener("click", () => login(pseudo));
 
         grid.appendChild(chip);
+      });
+
+      // Récupère en arrière-plan le Pokémon préféré de chaque fiche connue, pour l'avatar
+      profiles.forEach(async (pseudo) => {
+        try{
+          const snap = await getDoc(doc(db, "fiches", slug(pseudo)));
+          const sprite = snap.exists() ? snap.data().favPokemon?.sprite : null;
+          if(sprite && avatarEls[slug(pseudo)]){
+            fillAvatar(avatarEls[slug(pseudo)], pseudo, sprite);
+          }
+        }catch{ /* silencieux — l'avatar reste la lettre par défaut */ }
       });
     }
   }
@@ -598,7 +746,13 @@
 
     const label = document.createElement("div");
     label.className = "skill-name";
-    label.textContent = name;
+    const icon = document.createElement("span");
+    icon.className = "skill-icon";
+    icon.textContent = SKILL_ICONS[name] || "•";
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = name;
+    label.appendChild(icon);
+    label.appendChild(nameSpan);
 
     const pipsWrap = document.createElement("div");
     pipsWrap.style.display = "flex";
@@ -635,7 +789,66 @@
     return row;
   }
 
-  // ---------- Navigation entre vues (ma fiche / annuaire / fiche consultée) ----------
+  // ---------- Pokémon préféré (sprites via PokeAPI, usage non-commercial) ----------
+  async function resolvePokemon(rawName){
+    const query = rawName.trim().toLowerCase();
+    if(!query) return null;
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(query)}`);
+    if(!res.ok) throw new Error("pokemon-introuvable");
+    const data = await res.json();
+    const sprite = data.sprites?.front_default;
+    if(!sprite) throw new Error("pas-de-sprite");
+    const displayName = data.name.charAt(0).toUpperCase() + data.name.slice(1);
+    return { name: displayName, sprite };
+  }
+
+  function fillAvatar(el, pseudo, spriteUrl){
+    el.innerHTML = "";
+    if(spriteUrl){
+      const img = document.createElement("img");
+      img.src = spriteUrl;
+      img.alt = "";
+      el.appendChild(img);
+    }else{
+      el.textContent = pseudo.trim().charAt(0).toUpperCase();
+    }
+  }
+
+  // ---------- Skin Minecraft (rendu via mc-heads.net, à partir du pseudo Java) ----------
+  function mcSkinUrl(username){
+    return `https://mc-heads.net/body/${encodeURIComponent(username.trim())}/150`;
+  }
+
+  $("favPokemonBtn").addEventListener("click", async () => {
+    const raw = $("favPokemonInput").value;
+    if(!raw.trim()) return;
+    setStatus("Recherche du Pokémon…");
+    try{
+      const result = await resolvePokemon(raw);
+      favPokemon = result;
+      $("favPokemonInput").value = result.name;
+      $("favPokemonPreview").src = result.sprite;
+      $("favPokemonPreview").style.display = "inline-block";
+      $("whoSprite").src = result.sprite;
+      $("whoSprite").style.display = "inline-block";
+      setStatus(`${result.name} associé — pense à enregistrer la fiche.`, "ok");
+    }catch(err){
+      favPokemon = null;
+      $("favPokemonPreview").style.display = "none";
+      setStatus("Pokémon introuvable — vérifie l'orthographe (nom anglais, ex. pikachu).", "error");
+    }
+  });
+
+  $("mcPseudoBtn").addEventListener("click", () => {
+    const raw = $("mcPseudoInput").value.trim();
+    if(!raw) return;
+    mcPseudo = raw;
+    $("mcSkinPreview").src = mcSkinUrl(raw);
+    $("mcSkinPreview").style.display = "block";
+    setStatus("Aperçu du skin chargé — pense à enregistrer la fiche.", "ok");
+  });
+
+
   function showView(mode){
     viewMode = mode;
     $("app").style.display = (mode === "mine") ? "block" : "none";
@@ -698,7 +911,12 @@
         directoryEntries = [];
         snap.forEach(d => {
           const data = d.data();
-          directoryEntries.push({ id: d.id, pseudo: data.pseudo || d.id });
+          directoryEntries.push({
+            id: d.id,
+            pseudo: data.pseudo || d.id,
+            favPokemon: data.favPokemon || null,
+            mcPseudo: data.mcPseudo || ""
+          });
         });
         directoryEntries.sort((a,b) => a.pseudo.localeCompare(b.pseudo, "fr"));
         renderDirectoryList();
@@ -739,7 +957,7 @@
 
       const avatar = document.createElement("div");
       avatar.className = "avatar";
-      avatar.textContent = entry.pseudo.trim().charAt(0).toUpperCase();
+      fillAvatar(avatar, entry.pseudo, entry.favPokemon?.sprite || null);
 
       const name = document.createElement("span");
       name.className = "dname";
@@ -764,10 +982,28 @@
     viewActiveCat = CATEGORIES[0];
     showView("viewing");
     $("viewingName").textContent = pseudo;
+    $("viewingPokeSprite").style.display = "none";
+    $("viewingMcSkin").style.display = "none";
     $("deleteProfileBtn").style.display = isAdmin ? "inline-flex" : "none";
 
     unsubViewing = onSnapshot(doc(db, "fiches", id), (snap) => {
-      viewingLevels = (snap.exists() && snap.data().competences) ? snap.data().competences : {};
+      const data = snap.exists() ? snap.data() : {};
+      viewingLevels = data.competences || {};
+
+      if(data.favPokemon?.sprite){
+        $("viewingPokeSprite").src = data.favPokemon.sprite;
+        $("viewingPokeSprite").style.display = "inline-block";
+      }else{
+        $("viewingPokeSprite").style.display = "none";
+      }
+
+      if(data.mcPseudo){
+        $("viewingMcSkin").src = mcSkinUrl(data.mcPseudo);
+        $("viewingMcSkin").style.display = "block";
+      }else{
+        $("viewingMcSkin").style.display = "none";
+      }
+
       renderViewTabs();
       renderViewSkills();
     }, (err) => {
@@ -817,13 +1053,36 @@
     try{
       const ref = doc(db, "fiches", id);
       const snap = await getDoc(ref);
-      levels = (snap.exists() && snap.data().competences) ? snap.data().competences : {};
+      const data = snap.exists() ? snap.data() : {};
+      levels = data.competences || {};
+      favPokemon = data.favPokemon || null;
+      mcPseudo = data.mcPseudo || "";
 
       addSavedProfile(pseudo);
 
       $("gate").style.display = "none";
       $("whoCard").style.display = "flex";
       $("whoName").textContent = pseudo;
+
+      $("favPokemonInput").value = favPokemon ? favPokemon.name : "";
+      if(favPokemon?.sprite){
+        $("favPokemonPreview").src = favPokemon.sprite;
+        $("favPokemonPreview").style.display = "inline-block";
+        $("whoSprite").src = favPokemon.sprite;
+        $("whoSprite").style.display = "inline-block";
+      }else{
+        $("favPokemonPreview").style.display = "none";
+        $("whoSprite").style.display = "none";
+      }
+
+      $("mcPseudoInput").value = mcPseudo;
+      if(mcPseudo){
+        $("mcSkinPreview").src = mcSkinUrl(mcPseudo);
+        $("mcSkinPreview").style.display = "block";
+      }else{
+        $("mcSkinPreview").style.display = "none";
+      }
+
       showView("mine");
       activeCat = CATEGORIES[0];
       renderTabs();
@@ -844,6 +1103,13 @@
     $("adminBtn").classList.remove("on");
     currentUser = null;
     levels = {};
+    favPokemon = null;
+    mcPseudo = "";
+    $("favPokemonInput").value = "";
+    $("favPokemonPreview").style.display = "none";
+    $("mcPseudoInput").value = "";
+    $("mcSkinPreview").style.display = "none";
+    $("whoSprite").style.display = "none";
     $("whoCard").style.display = "none";
     $("app").style.display = "none";
     $("directory").style.display = "none";
@@ -863,6 +1129,8 @@
       await setDoc(doc(db, "fiches", id), {
         pseudo: currentUser,
         competences: levels,
+        favPokemon: favPokemon || null,
+        mcPseudo: mcPseudo || "",
         misAJour: new Date().toISOString()
       });
       setStatus("Fiche enregistrée.", "ok");
