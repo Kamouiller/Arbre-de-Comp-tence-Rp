@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre des Compétences — RP Cobblemon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #16241c;
+    --bg-raised: #1e3327;
+    --bg-card: #24402f;
+    --line: #3a5a44;
+    --ink: #ece3cd;
+    --ink-dim: #b9c4ac;
+    --amber: #d9a441;
+    --amber-soft: rgba(217,164,65,.16);
+    --rust: #b8623b;
+    --pip-off: #33513e;
+    --radius: 3px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(217,164,65,.06), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(184,98,59,.05), transparent 55%);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  h1,h2,h3, .display{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Shell ---------- */
+  .wrap{ max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  header.top{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap: 20px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 20px; margin-bottom: 28px;
+  }
+  .brand .kicker{
+    font-size: 13px; color: var(--amber); font-weight: 500;
+    margin: 0 0 4px;
+  }
+  .brand h1{ font-size: 30px; margin: 0; }
+  .brand p{ margin: 6px 0 0; color: var(--ink-dim); font-size: 14.5px; max-width: 46ch; }
+
+  /* ---------- Login card ---------- */
+  .login-card{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 22px;
+    display:flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;
+    min-width: 260px;
+  }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field label{ font-size: 12.5px; color: var(--ink-dim); }
+  .field input{
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 9px 11px;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 14.5px;
+    min-width: 190px;
+  }
+  .field input:focus{ outline: 2px solid var(--amber); outline-offset: 1px; }
+  button{
+    font-family: 'Work Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .btn-primary{ background: var(--amber); color: #1a1508; }
+  .btn-primary:hover{ background: #e6b25a; }
+  .btn-ghost{ background: transparent; color: var(--ink-dim); border-color: var(--line); }
+  .btn-ghost:hover{ color: var(--ink); border-color: var(--ink-dim); }
+  button:disabled{ opacity:.5; cursor:not-allowed; }
+
+  .who{ display:flex; align-items:center; gap:10px; }
+  .who .name{ font-family:'Fraunces',serif; font-size:17px; }
+  .who .name span{ color: var(--amber); }
+
+  /* ---------- Status line ---------- */
+  #status{
+    font-size: 13px; color: var(--ink-dim); min-height: 18px; margin: -10px 0 20px;
+  }
+  #status.error{ color: var(--rust); }
+  #status.ok{ color: var(--amber); }
+
+  /* ---------- App (hidden until logged in) ---------- */
+  #app{ display:none; }
+
+  .tabs{
+    display:flex; flex-wrap:wrap; gap:6px;
+    margin-bottom: 22px;
+  }
+  .tab{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    font-size: 13px; font-weight: 500;
+    padding: 8px 13px;
+  }
+  .tab.active{
+    background: var(--amber-soft);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  .category-title{
+    display:flex; align-items:baseline; gap:10px;
+    margin: 0 0 16px;
+  }
+  .category-title h2{ font-size: 21px; margin:0; }
+  .category-title .count{ font-size: 12.5px; color: var(--ink-dim); }
+
+  .skill-list{ display:flex; flex-direction:column; border-top: 1px solid var(--line); }
+  .skill-row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 16px; padding: 13px 2px;
+    border-bottom: 1px solid var(--line);
+  }
+  .skill-name{ font-size: 14.5px; }
+  .pips{ display:flex; gap: 6px; flex-shrink:0; }
+  .pip{
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--pip-off);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+  }
+  .pip:hover{ border-color: var(--amber); }
+  .pip.filled{ background: var(--amber); border-color: var(--amber); }
+  .pip.filled:hover{ background: #e6b25a; }
+  .level-label{
+    font-size: 12px; color: var(--ink-dim); width: 62px; text-align:right;
+  }
+
+  .save-bar{
+    position: sticky; bottom: 0;
+    display:flex; align-items:center; justify-content:space-between;
+    gap: 14px; flex-wrap:wrap;
+    margin-top: 28px; padding: 16px 18px;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .save-bar .hint{ font-size: 12.5px; color: var(--ink-dim); }
+
+  footer{
+    margin-top: 40px; padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--ink-dim);
+  }
+
+  @media (max-width: 560px){
+    .login-card{ flex-direction:column; align-items:stretch; }
+    .field input{ min-width: 0; width: 100%; }
+    .skill-row{ flex-wrap: wrap; }
+    .level-label{ width: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <p class="kicker">Serveur RP · Cobblemon</p>
+      <h1>Registre des compétences</h1>
+      <p>Chaque personnage consigne ici son savoir-faire. Choisis ton pseudo pour ouvrir ta fiche.</p>
+    </div>
+
+    <div id="loginCard" class="login-card">
+      <div class="field">
+        <label for="pseudo">Pseudo du personnage</label>
+        <input id="pseudo" type="text" placeholder="ex. Aria Cendre" autocomplete="off" maxlength="30">
+      </div>
+      <button class="btn-primary" id="loginBtn">Ouvrir la fiche</button>
+    </div>
+
+    <div id="whoCard" class="who" style="display:none;">
+      <div class="name">Fiche de <span id="whoName"></span></div>
+      <button class="btn-ghost" id="logoutBtn">Changer</button>
+    </div>
+  </header>
+
+  <div id="status"></div>
+
+  <div id="app">
+    <nav class="tabs" id="tabs"></nav>
+    <div class="category-title">
+      <h2 id="catTitle"></h2>
+      <span class="count" id="catCount"></span>
+    </div>
+    <div class="skill-list" id="skillList"></div>
+
+    <div class="save-bar">
+      <span class="hint">Les niveaux se sauvegardent uniquement quand tu cliques sur enregistrer.</span>
+      <button class="btn-primary" id="saveBtn">Enregistrer la fiche</button>
+    </div>
+  </div>
+
+  <footer>
+    Registre des compétences — hébergé sur GitHub Pages.
+  </footer>
+</div>
+
+<!-- ============ Firebase ============ -->
+<!-- Remplace les valeurs ci-dessous par la config de TON projet Firebase
+     (Console Firebase > Paramètres du projet > Vos applications > Config SDK). -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+  apiKey: "AIzaSyBU8D7Y4UzcZx8lNiWgaLMjWSBzZo47PW0",
+  authDomain: "arbre-competences-rp.firebaseapp.com",
+  projectId: "arbre-competences-rp",
+  storageBucket: "arbre-competences-rp.firebasestorage.app",
+  messagingSenderId: "871173842127",
+  appId: "1:871173842127:web:322d117b65cf1bc37d83ba",
+  measurementId: "G-YE1MZMWV16"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const db = getFirestore(fbApp);
+
+  // ---------- Données : compétences fixes par catégorie ----------
+  const SKILLS = {
+    "Pokémon": [
+      "Dressage / Combat",
+      "Reproduction / élevage",
+      "Soin vétérinaire Pokémon",
+      "Toilettage / Esthétique Pokémon",
+      "Compréhension du langage Pokémon",
+      "Entraînement physique",
+      "Organisation de tournois / arbitrage"
+    ],
+    "Construction": [
+      "Maçonnerie",
+      "Charpenterie",
+      "Architecture / Plans",
+      "Urbanisme",
+      "Ingénierie des structures",
+      "Décoration d'intérieur",
+      "Décoration extérieure",
+      "Fortification / Défense"
+    ],
+    "Artisanat": [
+      "Métallurgie (forge)",
+      "Menuiserie / Travail du bois",
+      "Couture / Tissage",
+      "Poterie",
+      "Joaillerie",
+      "Maroquinerie (cuir)",
+      "Vitrerie (verre / vitraux)",
+      "Fabrication d'outils",
+      "Sculpture",
+      "Taillage de pierre"
+    ],
+    "Électricité": [
+      "Électrotechnique",
+      "Mécanique / Robotique",
+      "Réparation d'appareils",
+      "Production d'énergie",
+      "Domotique",
+      "Informatique / Programmation"
+    ],
+    "Survie": [
+      "Agriculture",
+      "Cuisine",
+      "Pêche",
+      "Chasse",
+      "Herboristerie / Botanique",
+      "Médecine",
+      "Fabrication de potions / Alchimie",
+      "Purification de l'eau",
+      "Confection d'abris de fortune"
+    ],
+    "Exploration": [
+      "Cartographie",
+      "Minage / Extraction",
+      "Spéléologie",
+      "Navigation",
+      "Pistage / Repérage",
+      "Survie en milieu extrême",
+      "Escalade",
+      "Météorologie"
+    ],
+    "Social": [
+      "Commerce / Négociation",
+      "Enseignement / Formation",
+      "Recherche scientifique",
+      "Diplomatie / Médiation",
+      "Droit / Justice RP",
+      "Journalisme / Communication",
+      "Histoire / Archivage",
+      "Leadership / Gestion de groupe"
+    ]
+  };
+  const CATEGORIES = Object.keys(SKILLS);
+  const LEVEL_LABELS = ["Novice","Débutant","Confirmé","Expert","Maître"];
+
+  // ---------- État ----------
+  let currentUser = null;   // pseudo, normalisé en id de doc
+  let levels = {};          // { "Dressage / Combat": 3, ... }
+  let activeCat = CATEGORIES[0];
+
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $("status");
+
+  function setStatus(msg, type){
+    statusEl.textContent = msg || "";
+    statusEl.className = type || "";
+  }
+
+  function slug(pseudo){
+    return pseudo.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9\-]/g, "");
+  }
+
+  // ---------- Rendu des onglets ----------
+  function renderTabs(){
+    const tabs = $("tabs");
+    tabs.innerHTML = "";
+    CATEGORIES.forEach(cat => {
+      const b = document.createElement("button");
+      b.className = "tab" + (cat === activeCat ? " active" : "");
+      b.textContent = cat;
+      b.addEventListener("click", () => { activeCat = cat; renderTabs(); renderSkills(); });
+      tabs.appendChild(b);
+    });
+  }
+
+  // ---------- Rendu de la liste de compétences ----------
+  function renderSkills(){
+    $("catTitle").textContent = activeCat;
+    const skills = SKILLS[activeCat];
+    $("catCount").textContent = skills.length + " compétences";
+
+    const list = $("skillList");
+    list.innerHTML = "";
+    skills.forEach(name => {
+      const row = document.createElement("div");
+      row.className = "skill-row";
+
+      const label = document.createElement("div");
+      label.className = "skill-name";
+      label.textContent = name;
+
+      const pipsWrap = document.createElement("div");
+      pipsWrap.style.display = "flex";
+      pipsWrap.style.alignItems = "center";
+      pipsWrap.style.gap = "12px";
+
+      const pips = document.createElement("div");
+      pips.className = "pips";
+      const current = levels[name] || 0;
+
+      for(let i=1; i<=5; i++){
+        const pip = document.createElement("button");
+        pip.type = "button";
+        pip.className = "pip" + (i <= current ? " filled" : "");
+        pip.title = LEVEL_LABELS[i-1];
+        pip.addEventListener("click", () => {
+          // re-cliquer sur le même niveau le remet à 0
+          levels[name] = (levels[name] === i) ? 0 : i;
+          renderSkills();
+        });
+        pips.appendChild(pip);
+      }
+
+      const lvlLabel = document.createElement("div");
+      lvlLabel.className = "level-label";
+      lvlLabel.textContent = current > 0 ? LEVEL_LABELS[current-1] : "—";
+
+      pipsWrap.appendChild(pips);
+      pipsWrap.appendChild(lvlLabel);
+
+      row.appendChild(label);
+      row.appendChild(pipsWrap);
+      list.appendChild(row);
+    });
+  }
+
+  // ---------- Connexion ----------
+  async function login(pseudoRaw){
+    const pseudo = pseudoRaw.trim();
+    if(!pseudo){ setStatus("Entre un pseudo pour ouvrir ta fiche.", "error"); return; }
+
+    setStatus("Chargement de la fiche…");
+    currentUser = pseudo;
+    const id = slug(pseudo);
+
+    try{
+      const ref = doc(db, "fiches", id);
+      const snap = await getDoc(ref);
+      levels = (snap.exists() && snap.data().competences) ? snap.data().competences : {};
+
+      $("loginCard").style.display = "none";
+      $("whoCard").style.display = "flex";
+      $("whoName").textContent = pseudo;
+      $("app").style.display = "block";
+      activeCat = CATEGORIES[0];
+      renderTabs();
+      renderSkills();
+      setStatus(snap.exists() ? "Fiche chargée." : "Nouvelle fiche — tes niveaux ne sont pas encore enregistrés.", "ok");
+    }catch(err){
+      console.error(err);
+      setStatus("Impossible de contacter la base de données. Vérifie la configuration Firebase.", "error");
+      currentUser = null;
+    }
+  }
+
+  function logout(){
+    currentUser = null;
+    levels = {};
+    $("app").style.display = "none";
+    $("whoCard").style.display = "none";
+    $("loginCard").style.display = "flex";
+    $("pseudo").value = "";
+    setStatus("");
+  }
+
+  async function save(){
+    if(!currentUser) return;
+    const btn = $("saveBtn");
+    btn.disabled = true;
+    setStatus("Enregistrement…");
+    try{
+      const id = slug(currentUser);
+      await setDoc(doc(db, "fiches", id), {
+        pseudo: currentUser,
+        competences: levels,
+        misAJour: new Date().toISOString()
+      });
+      setStatus("Fiche enregistrée.", "ok");
+    }catch(err){
+      console.error(err);
+      setStatus("Échec de l'enregistrement. Vérifie la configuration Firebase.", "error");
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  // ---------- Écouteurs ----------
+  $("loginBtn").addEventListener("click", () => login($("pseudo").value));
+  $("pseudo").addEventListener("keydown", (e) => { if(e.key === "Enter") login($("pseudo").value); });
+  $("logoutBtn").addEventListener("click", logout);
+  $("saveBtn").addEventListener("click", save);
+
+</script>
+</body>
+</html>
