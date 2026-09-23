@@ -234,6 +234,21 @@
   }
   #directorySearch:focus{ outline: 2px solid var(--amber); outline-offset: 1px; }
 
+  .directory-filters{ display:flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-chip{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    font-size: 12.5px; font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+  }
+  .filter-chip.active{
+    background: var(--amber-soft);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
   .directory-grid{
     display:grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -253,21 +268,26 @@
     background: var(--bg-card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 12px 8px 10px;
+    padding: 8px 8px 10px;
     display:flex; flex-direction:column; align-items:center;
-    gap: 6px;
+    gap: 4px;
     cursor: pointer;
     text-align: center;
     aspect-ratio: 3 / 4;
+    color: var(--ink);
+  }
+  .guild-badge-slot{
+    height: 18px;
+    display:flex; align-items:center; justify-content:center;
+    width: 100%;
   }
   .guild-badge{
-    position: absolute; top: 6px; left: 6px;
     font-size: 10px; font-weight: 600; letter-spacing: .02em;
     background: var(--amber-soft); color: var(--amber);
     border: 1px solid var(--amber);
-    padding: 2px 6px; border-radius: 20px;
+    padding: 2px 8px; border-radius: 20px;
     line-height: 1.4;
-    max-width: calc(100% - 12px);
+    max-width: 100%;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .guild-badge.available{
@@ -300,6 +320,7 @@
   }
   .directory-card .dname{
     font-size: 13px; font-weight: 500;
+    color: var(--ink);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     max-width: 100%;
   }
@@ -478,6 +499,11 @@
       <div class="directory-header">
         <h2>Annuaire des personnages</h2>
         <input id="directorySearch" type="text" placeholder="Rechercher un pseudo…" autocomplete="off">
+      </div>
+      <div class="directory-filters" id="directoryFilters">
+        <button type="button" class="filter-chip active" data-filter="all">Tous</button>
+        <button type="button" class="filter-chip" data-filter="available">Disponibles</button>
+        <button type="button" class="filter-chip" data-filter="guild">En guilde</button>
       </div>
       <div class="directory-grid" id="directoryList"></div>
     </div>
@@ -1065,18 +1091,25 @@
     showView("mine");
   }
 
+  let directoryFilter = "all"; // 'all' | 'available' | 'guild'
+
   function renderDirectoryList(){
     const q = ($("directorySearch").value || "").trim().toLowerCase();
     const list = $("directoryList");
     list.innerHTML = "";
-    const filtered = directoryEntries.filter(e => e.pseudo.toLowerCase().includes(q));
+    let filtered = directoryEntries.filter(e => e.pseudo.toLowerCase().includes(q));
+    if(directoryFilter === "available"){
+      filtered = filtered.filter(e => e.guildStatus === "available");
+    }else if(directoryFilter === "guild"){
+      filtered = filtered.filter(e => e.guildStatus === "guild" && e.guildName);
+    }
 
     if(filtered.length === 0){
       const empty = document.createElement("div");
       empty.className = "directory-empty";
       empty.textContent = directoryEntries.length === 0
         ? "Aucune fiche n'a encore été créée."
-        : "Aucun personnage ne correspond à cette recherche.";
+        : "Aucun personnage ne correspond à ces critères.";
       list.appendChild(empty);
       return;
     }
@@ -1086,18 +1119,21 @@
       card.type = "button";
       card.className = "directory-card";
 
+      const badgeSlot = document.createElement("div");
+      badgeSlot.className = "guild-badge-slot";
       if(entry.guildStatus === "guild" && entry.guildName){
         const badge = document.createElement("span");
         badge.className = "guild-badge";
         badge.textContent = entry.guildName;
         badge.title = entry.guildName;
-        card.appendChild(badge);
+        badgeSlot.appendChild(badge);
       }else if(entry.guildStatus === "available"){
         const badge = document.createElement("span");
         badge.className = "guild-badge available";
         badge.textContent = "Disponible";
-        card.appendChild(badge);
+        badgeSlot.appendChild(badge);
       }
+      card.appendChild(badgeSlot);
 
       const visual = document.createElement("div");
       visual.className = "card-visual";
@@ -1135,6 +1171,13 @@
   }
 
   $("directorySearch").addEventListener("input", renderDirectoryList);
+  document.querySelectorAll(".filter-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      directoryFilter = chip.dataset.filter;
+      document.querySelectorAll(".filter-chip").forEach(c => c.classList.toggle("active", c === chip));
+      renderDirectoryList();
+    });
+  });
   $("backToListBtn").addEventListener("click", () => {
     stopViewingListener();
     showView("directory");
