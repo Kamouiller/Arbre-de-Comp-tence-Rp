@@ -239,8 +239,31 @@
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 12px;
   }
-  .directory-card{
-    background: var(--bg-card);
+  .radio-row{
+    display:flex; align-items:center; gap: 9px;
+    font-size: 14px; cursor: pointer;
+    padding: 5px 0;
+  }
+  .radio-row input{
+    width: 16px; height: 16px; accent-color: var(--wine-bright); cursor: pointer;
+  }
+
+  .directory-card{ position: relative; }
+  .guild-badge{
+    position: absolute; top: 6px; left: 6px;
+    font-size: 10px; font-weight: 600; letter-spacing: .02em;
+    background: var(--amber-soft); color: var(--amber);
+    border: 1px solid var(--amber);
+    padding: 2px 6px; border-radius: 20px;
+    line-height: 1.4;
+    max-width: calc(100% - 12px);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .guild-badge.available{
+    background: rgba(120, 190, 140, .14);
+    color: #8fd6a3;
+    border-color: #8fd6a3;
+  }
     border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 12px 8px 10px;
@@ -414,6 +437,24 @@
         </div>
         <img id="mcSkinPreview" class="mc-skin-preview" style="display:none;" alt="">
       </div>
+      <div class="extra-field">
+        <label>Statut de guilde</label>
+        <label class="radio-row">
+          <input type="radio" name="guildStatus" id="guildStatusGuild" value="guild">
+          <span>Dans une guilde</span>
+        </label>
+        <div class="extra-row" id="guildNameRow" style="display:none; margin: 4px 0 10px 25px;">
+          <input id="guildNameInput" type="text" placeholder="Nom de la guilde" autocomplete="off" maxlength="40">
+        </div>
+        <label class="radio-row">
+          <input type="radio" name="guildStatus" id="guildStatusAvailable" value="available">
+          <span>Disponible (recrutable)</span>
+        </label>
+        <label class="radio-row">
+          <input type="radio" name="guildStatus" id="guildStatusNone" value="none" checked>
+          <span>Non précisé</span>
+        </label>
+      </div>
     </div>
 
     <nav class="tabs" id="tabs"></nav>
@@ -566,7 +607,7 @@
   const LEVEL_LABELS = ["Novice","Débutant","Confirmé","Expert","Maître"];
   const PROFILES_KEY = "cobblemon_pseudos";
   // Mot de passe admin — à changer avant de mettre le site en ligne.
-  const ADMIN_PASSWORD = "change-moi";
+  const ADMIN_PASSWORD = "Kamouiller25072000";
   let isAdmin = false;
 
   // ---------- Icônes par compétence ----------
@@ -632,6 +673,8 @@
   // ---------- État : Pokémon préféré / skin Minecraft ----------
   let favPokemon = null;   // { name, sprite }
   let mcPseudo = "";
+  let guildStatus = "none"; // 'guild' | 'available' | 'none'
+  let guildName = "";
 
   // ---------- État ----------
   let currentUser = null;   // pseudo, normalisé en id de doc
@@ -921,6 +964,17 @@
     setStatus("Aperçu du skin chargé — pense à enregistrer la fiche.", "ok");
   });
 
+  document.querySelectorAll('input[name="guildStatus"]').forEach(radio => {
+    radio.addEventListener("change", (e) => {
+      guildStatus = e.target.value;
+      $("guildNameRow").style.display = (guildStatus === "guild") ? "flex" : "none";
+      if(guildStatus !== "guild") guildName = "";
+    });
+  });
+  $("guildNameInput").addEventListener("input", (e) => {
+    guildName = e.target.value;
+  });
+
 
   function showView(mode){
     viewMode = mode;
@@ -988,7 +1042,9 @@
             id: d.id,
             pseudo: data.pseudo || d.id,
             favPokemon: data.favPokemon || null,
-            mcPseudo: data.mcPseudo || ""
+            mcPseudo: data.mcPseudo || "",
+            guildStatus: data.guildStatus || "none",
+            guildName: data.guildName || ""
           });
         });
         directoryEntries.sort((a,b) => a.pseudo.localeCompare(b.pseudo, "fr"));
@@ -1027,6 +1083,19 @@
       const card = document.createElement("button");
       card.type = "button";
       card.className = "directory-card";
+
+      if(entry.guildStatus === "guild" && entry.guildName){
+        const badge = document.createElement("span");
+        badge.className = "guild-badge";
+        badge.textContent = entry.guildName;
+        badge.title = entry.guildName;
+        card.appendChild(badge);
+      }else if(entry.guildStatus === "available"){
+        const badge = document.createElement("span");
+        badge.className = "guild-badge available";
+        badge.textContent = "Disponible";
+        card.appendChild(badge);
+      }
 
       const visual = document.createElement("div");
       visual.className = "card-visual";
@@ -1150,6 +1219,8 @@
       levels = data.competences || {};
       favPokemon = data.favPokemon || null;
       mcPseudo = data.mcPseudo || "";
+      guildStatus = data.guildStatus || "none";
+      guildName = data.guildName || "";
 
       addSavedProfile(pseudo);
 
@@ -1175,6 +1246,9 @@
       }else{
         $("mcSkinPreview").style.display = "none";
       }
+      document.querySelector(`input[name="guildStatus"][value="${guildStatus}"]`).checked = true;
+      $("guildNameInput").value = guildName;
+      $("guildNameRow").style.display = (guildStatus === "guild") ? "flex" : "none";
 
       showView("mine");
       activeCat = CATEGORIES[0];
@@ -1198,11 +1272,16 @@
     levels = {};
     favPokemon = null;
     mcPseudo = "";
+    guildStatus = "none";
+    guildName = "";
     $("favPokemonInput").value = "";
     $("favPokemonPreview").style.display = "none";
     $("mcPseudoInput").value = "";
     $("mcSkinPreview").style.display = "none";
     $("whoSprite").style.display = "none";
+    $("guildNameInput").value = "";
+    $("guildNameRow").style.display = "none";
+    $("guildStatusNone").checked = true;
     $("whoCard").style.display = "none";
     $("app").style.display = "none";
     $("directory").style.display = "none";
@@ -1224,6 +1303,8 @@
         competences: levels,
         favPokemon: favPokemon || null,
         mcPseudo: mcPseudo || "",
+        guildStatus: guildStatus || "none",
+        guildName: (guildStatus === "guild") ? (guildName || "") : "",
         misAJour: new Date().toISOString()
       });
       setStatus("Fiche enregistrée.", "ok");
