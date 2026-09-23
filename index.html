@@ -248,7 +248,18 @@
     width: 16px; height: 16px; accent-color: var(--wine-bright); cursor: pointer;
   }
 
-  .directory-card{ position: relative; }
+  .directory-card{
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 8px 10px;
+    display:flex; flex-direction:column; align-items:center;
+    gap: 6px;
+    cursor: pointer;
+    text-align: center;
+    aspect-ratio: 3 / 4;
+  }
   .guild-badge{
     position: absolute; top: 6px; left: 6px;
     font-size: 10px; font-weight: 600; letter-spacing: .02em;
@@ -263,15 +274,6 @@
     background: rgba(120, 190, 140, .14);
     color: #8fd6a3;
     border-color: #8fd6a3;
-  }
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 12px 8px 10px;
-    display:flex; flex-direction:column; align-items:center;
-    gap: 6px;
-    cursor: pointer;
-    text-align: center;
-    aspect-ratio: 3 / 4;
   }
   .directory-card:hover{ border-color: var(--wine-bright); background: var(--bg-raised); }
   .directory-card .card-visual{
